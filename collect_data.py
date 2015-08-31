@@ -10,6 +10,13 @@ API_KEY = ""
 db = None
 conn = None
 
+def isStringInt(s):
+  try: 
+    int(s)
+    return True
+  except ValueError:
+    return False
+
 def parseEvent(event_id):
   def parsePool(pool):
     #TODO: merge duplicate code with parseDE
@@ -195,7 +202,49 @@ def scrapePromotions(begin_date, end_date):
     i = i+1
     time.sleep(10)
 
+def scrapeAllFencers(begin_fencerid=0):
+  i = 1
+  batch_num = 100
+  current_fencerid = None
+  while True:
+    payload = {"_api_key" : API_KEY,
+      "_sort" : "fencer_id_desc",
+      "_per_page" : batch_num,
+      "_page" : i,
+      }
+    r = requests.get("https://api.askfred.net/v1/fencer", params=payload)
+    rjson = r.json()
 
+    for result in rjson["fencers"]:
+      sqlcmd = ("""INSERT OR IGNORE INTO fencers
+        (fencerid, first_name, last_name, birthyear, usfa_id, gender)
+        VALUES
+        (%(f)s, '%(fn)s', '%(ln)s', %(b)s, %(uid)s, '%(g)s')
+      """ % {
+          "f" : result["id"],
+          "fn" : result["first_name"].replace("'", "''"), #retarded sql escaping
+          "ln" : result["last_name"].replace("'", "''"), #retarded sql escaping
+          "b" : result["birthyear"],
+          "uid" : result["usfa_id"] if (result["usfa_id"] != "" and isStringInt(result["usfa_id"]) ) else "NULL",
+          "g" : result["gender"],
+        })
+      print sqlcmd
+      db.execute(sqlcmd)
+      current_fencerid = int(result["id"])
+
+    conn.commit()
+
+    if i * batch_num >= int(rjson["total_matched"]):
+      break
+    if current_fencerid < begin_fencerid:
+      break
+    i = i+1
+    time.sleep(10)
+  return
+
+def scrapeAllFencersUpdate():
+  maxfencerid = int(db.execute("SELECT MAX(fencerid) FROM fencers").fetchone())
+  scrapeAllFencers(maxfencerid)
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description='Collects Askfred bout data')
@@ -207,6 +256,10 @@ if __name__ == "__main__":
       help="Scrape tournament results. Must use with either --days or --begin-date")
   parser.add_argument("--scrape-promotions", action="store_true", dest="scrape_promotions", default=False,
       help="Scrape promotions. Must use with either --days or --begin-date")
+  parser.add_argument("--scrape-fencer", action="store_true", dest="scrape_fencer", default=False,
+      help="Scrape fencers.")
+  parser.add_argument("--scrape-fencer-update", action="store_true", dest="scrape_fencer_update", default=False,
+      help="Scrape fencers (only update).")
   parser.add_argument("--days", action="store", dest="scrape_lookback", default=None,
       help="Scrape lookback in calendar days")
   parser.add_argument("--begin-date", action="store", dest="begin_date", default=None,
@@ -220,6 +273,10 @@ if __name__ == "__main__":
   db = conn.cursor()
   end_date = datetime.strptime(args.end_date, '%Y-%m-%d')
 
+  if args.scrape_fencer or args.scrape_fencer_update:
+    begin_date = datetime.now()
+    end_date = datetime.now()
+
   if args.begin_date != None:
     begin_date = datetime.strptime(args.begin_date, '%Y-%m-%d')
   elif args.scrape_lookback != None:
@@ -231,6 +288,10 @@ if __name__ == "__main__":
     scrapeResults(begin_date, end_date)
   elif args.scrape_promotions:
     scrapePromotions(begin_date, end_date)
+  elif args.scrape_fencer:
+    scrapeAllFencers()
+  elif args.scrape_fencer_update:
+    scrapeAllFencersUpdate()
 
   conn.commit()
   conn.close()
