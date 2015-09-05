@@ -1,5 +1,17 @@
 DROP TABLE adjusted_ratings;
-CREATE TABLE adjusted_ratings AS
+
+CREATE TABLE IF NOT EXISTS adjusted_ratings(
+  fencerid            INTEGER               NOT NULL,
+  weapon              TEXT                  CHECK(weapon in ('Epee', 'Foil', 'Saber')),
+  boutid              INTEGER               NOT NULL,
+  ts_mu               REAL                  NOT NULL,
+  ts_sigma            REAL                  NOT NULL,
+  prev_ts_mu          REAL                  NOT NULL,
+  prev_ts_sigma       REAL                  NOT NULL,
+  PRIMARY KEY (fencerid, weapon, boutid)
+);
+
+INSERT INTO adjusted_ratings
 
 SELECT r.fencerid, r.weapon, r.boutid, r.ts_mu + 0.0031825194805194796 * (julianday(t.start_date) - julianday('2010-01-01')) AS ts_mu, r.ts_sigma,
                         r.prev_ts_mu + 0.0031825194805194796 * (julianday(t.start_date) - julianday('2010-01-01')) AS prev_ts_mu, r.prev_ts_sigma
