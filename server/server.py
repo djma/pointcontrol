@@ -3,6 +3,8 @@ import tornado.web
 import sqlite3
 import json
 import os
+import sys
+from tornado.options import define, options
 
 allnames = [];
 idToName = {};
@@ -173,10 +175,11 @@ application = tornado.web.Application([
     (r"/get",GetRating),
     (r"/name",GetNames),
     (r"/translate",GetIDToName),
-    (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": "static"}),
+    (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": "/home/ubuntu/pointcontrol/server/static"}),
     (r"/favicon.ico", IconHandler),
 ],debug=True)
 if __name__ == "__main__":
+    tornado.options.parse_command_line()
     loadNames();
-    application.listen(8888)
+    application.listen(sys.argv[1])
     tornado.ioloop.IOLoop.instance().start()

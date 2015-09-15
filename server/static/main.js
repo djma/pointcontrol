@@ -156,12 +156,15 @@ function displayNames(names) {
   $("#title_thing").text("Click on the correct fencer...");
   $("#subtitle_thing").text("Full Name - Birth Year - Last Tournament");
   $( "h3" ).empty();
-  for (i = 0 ; i < names.length ; i++) {
+  for (i = 0 ; i < names.length && i < 10 ; i++) {
     $("#title_box").append('<h3 id="'+names[i]["id"]+'">' + names[i]["fullname"] + ' - ' + names[i]["birthyear"] + ' - ' + names[i]["t_date"]+ "</h3>");
   }
   $("h3").click(function() {
     getData($(this).attr('id'));
   });
+}
+
+function displayMore(names) {
 }
 
 
