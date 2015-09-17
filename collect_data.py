@@ -243,12 +243,13 @@ def scrapeAllFencers(begin_fencerid=0):
   return
 
 def scrapeAllFencersUpdate():
-  maxfencerid = int(db.execute("SELECT MAX(fencerid) FROM fencers").fetchone())
+  print db.execute("SELECT MAX(fencerid) FROM fencers").fetchone()
+  maxfencerid = int(db.execute("SELECT MAX(fencerid) FROM fencers").fetchone()[0])
   scrapeAllFencers(maxfencerid)
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description='Collects Askfred bout data')
-  parser.add_argument("-k", action="store", dest="API_KEY", default="96dcd9772df668624c1b320cc5f185b1",
+  parser.add_argument("-k", action="store", dest="API_KEY", default="",
       help="Askfred REST API key")
   parser.add_argument("-d", action="store", dest="db", default="data.db",
       help="db target")
