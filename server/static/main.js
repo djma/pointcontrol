@@ -47,12 +47,12 @@ function drawBasic(fencer, fullname) {
             type: 'line'
         },
         title: {
-            text: 'Rating'
+            text: ''
         },
         subtitle: {
             text: fencer_name + ' - ' + latest_rank.toFixed(2) + ' - ' + fencer["weapon"],
             style: {
-                fontSize: '16px'
+                fontSize: '32px'
             }
         },
         xAxis: {
@@ -109,7 +109,7 @@ function drawFrame() {
             type: 'line'
         },
         title: {
-            text: 'Adjusted Rating'
+            text: ''
         },
         subtitle: {
             text: "Example - 0.00"

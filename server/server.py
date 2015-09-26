@@ -177,7 +177,7 @@ application = tornado.web.Application([
     (r"/translate",GetIDToName),
     (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": "/home/ubuntu/pointcontrol/server/static"}),
     (r"/favicon.ico", IconHandler),
-],debug=True)
+],debug=False)
 if __name__ == "__main__":
     tornado.options.parse_command_line()
     loadNames();
