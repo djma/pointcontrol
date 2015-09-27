@@ -20,6 +20,26 @@ function getData(id) {
   );
 }
 
+function queryEvents(q) {
+  $.getJSON("event?q="+q,
+      function(result) {
+          displayEvents(result);
+          $(".loading-image").hide();
+      }
+  );
+}
+
+function rateEvent(tournament_id, event_id) {
+  $.getJSON("rate_event?tournament_id="+tournament_id+"&event_id="+event_id,
+      function(ratings) {
+        for (i = 0 ; i < ratings.length; i++) {
+            $("#title_box").append('<h3>' + ratings[i]["name"] + ' - ' + ratings[i]["birthyear"] + ' - ' + ratings[i]["rating"] + "</h3>");
+        }
+        $(".loading-image").hide();
+      }
+  );
+}
+
 function drawBasic(fencer, fullname) {
       // 116580
       dateseen = {}
@@ -152,11 +172,27 @@ function drawFrame() {
     });
 }
 
+function displayEvents(events) {
+  $("#title_thing").text("Click on the correct event...");
+  $("#subtitle_thing").text("Tournament - Event - Start Date");
+  $( "h3" ).empty();
+  for (i = 0 ; i < events.length; i++) {
+    $("#title_box").append('<h3 tournament_id="'+events[i]["tournament_id"]+'" event_id="' +events[i]["event_id"]+ '" tename="' + events[i]["tname"] + ' ' + events[i]["ename"]  + '">' + events[i]["tname"] + ' - ' + events[i]["ename"] + ' - ' + events[i]["start_date"] + "</h3>");
+  }
+  $("h3").click(function() {
+      $(".loading-image").show();
+      $("#title_thing").text($(this).attr('tename'));
+      $("#subtitle_thing").text("Name - Birthyear - Latest Rating");
+      $("h3").empty()
+      ratings = rateEvent($(this).attr('tournament_id'), $(this).attr('event_id'));
+  });
+}
+
 function displayNames(names) {
   $("#title_thing").text("Click on the correct fencer...");
   $("#subtitle_thing").text("Full Name - Birth Year - Last Tournament");
   $( "h3" ).empty();
-  for (i = 0 ; i < names.length && i < 10 ; i++) {
+  for (i = 0 ; i < names.length; i++) {
     $("#title_box").append('<h3 id="'+names[i]["id"]+'">' + names[i]["fullname"] + ' - ' + names[i]["birthyear"] + ' - ' + names[i]["t_date"]+ "</h3>");
   }
   $("h3").click(function() {
@@ -188,6 +224,18 @@ $( "#fencerform" ).submit(function( event ) {
           $(".loading-image").hide();
         }
     );
+  } 
+  event.preventDefault();
+});
+
+$( "#eventform" ).submit(function( event ) {
+  value_string = $('#eventquery').val();
+  if (!isNaN(value_string)) {
+    //console.log("hi")
+    //queryEvents(value_string);
+  } else {
+    $(".loading-image").show();
+    queryEvents(value_string);
   } 
   event.preventDefault();
 });
