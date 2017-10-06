@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 API_KEY = ""
 db = None
 conn = None
+SHALLOW_SCRAPE = False
 
 def isStringInt(s):
   try: 
@@ -122,7 +123,7 @@ def scrapeResults(begin_date, end_date):
 
     for tournament in rjson["tournaments"]:
       print "parsing " + str(tournament["id"])
-      if db.execute("SELECT * FROM tournaments WHERE tournamentid = " + str(tournament["id"])).fetchone():
+      if SHALLOW_SCRAPE and db.execute("SELECT * FROM tournaments WHERE tournamentid = " + str(tournament["id"])).fetchone():
         continue
       print tournament
       print tournament["start_date"]
@@ -267,9 +268,12 @@ if __name__ == "__main__":
       help="Scrape begin date in yyyy-mm-dd")
   parser.add_argument("--end-date", action="store", dest="end_date", default=datetime.now().isoformat().split("T")[0],
       help="Scrape end date in yyyy-mm-dd")
+  parser.add_argument("--shallow", action="store", dest="SHALLOW_SCRAPE", default=False,
+      help="Do not scrape tournament events if tournament_id already in db")
   args = parser.parse_args()
 
   API_KEY = args.API_KEY
+  SHALLOW_SCRAPE = args.SHALLOW_SCRAPE
   conn = sqlite3.connect(args.db, timeout=20)
   db = conn.cursor()
   end_date = datetime.strptime(args.end_date, '%Y-%m-%d')

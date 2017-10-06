@@ -48,6 +48,9 @@ def loadNames():
         idToName[a[3]] = a[1] + " " + a[2]
 
 def getLatestRating(fencerid, weapon):
+  getLatestRatingAsOf(fencerid, weapon, datetime.now().isoformat().split("T")[0])
+
+def getLatestRatingAsOf(fencerid, weapon, asof):
   query = ''' select r.ts_mu, t.start_date
           from adjusted_ratings r, bouts b, events e, 
           tournaments t
@@ -56,9 +59,10 @@ def getLatestRating(fencerid, weapon):
           and b.eventid = e.eventid
           and e.tournamentid = t.tournamentid
           and r.fencerid = (?)
-          order by t.start_date asc, r.boutid desc
+          and t.start_date <= (?)
+          order by t.start_date asc, r.boutid asc
           '''
-  args = (weapon, int(fencerid),)
+  args = (weapon, int(fencerid), asof)
   rows = _execute(query, args)
   if not rows:
     return None
